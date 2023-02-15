@@ -1,0 +1,181 @@
+﻿
+
+<div class="avatar walking-@walkingTrigger" style="--posX: @posX; --posY:@posY; --oldX:@oldX; --oldY:@oldY; --avatarX:@avatarX; --avatarY:@avatarY">
+    <div class="image"></div>
+    <div class="name">@Player.Name</div>
+    <div class="message @(showMessage > 0 ? "" : "hidden")">@Player.Message</div>
+</div>
+@*<button @onclick="Test">AA</button>*@
+
+@code {
+    [Parameter]
+    public Player Player { get; set; }
+
+    bool walkingTrigger = false;
+
+    int posX, posY = 0;
+    int oldX, oldY = 0;
+
+    int avatarX => (Player.AvatarCode % 12) * 3;
+    int avatarY => (Player.AvatarCode / 12) * 4 + (int)Player.Dir;
+    int showMessage = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        oldX = Player.X;
+        oldY = Player.Y;
+        posX = Player.X;
+        posY = Player.Y;
+
+
+        Player.ContentUpdated += (s, a) =>
+        {
+            if (a == EContentChange.Message)
+            {
+                ShowMessage();
+            }
+
+            if (a == EContentChange.Movement)
+            {
+                walkingTrigger = !walkingTrigger;
+                oldX = posX;
+                oldY = posY;
+                posX = Player.X;
+                posY = Player.Y;
+            }
+
+            StateHasChanged();
+        };
+    }
+
+    private async void ShowMessage()
+    {
+        showMessage++;
+        await Task.Delay(5000);
+        showMessage--;
+        StateHasChanged();
+    }
+
+}
+
+<style>
+
+    .avatar {
+        justify-content: center;
+        width: 32px;
+        height: 48px;
+        position: absolute;
+        font-size: small;
+        text-overflow: ellipsis;
+        margin-top: -22px;
+        top: calc(var(--posY) * 32px);
+        left: calc(var(--posX) * 32px);
+        animation-duration: 0.3s;
+        animation-timing-function: ease;
+        animation-iteration-count: 1;
+       }
+
+    .message {
+        color: white;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, -2px -2px 2px #000, 2px -2px 2px #000, -2px 2px 2px #000, 2px 2px 2px #000;
+        text-overflow: ellipsis;
+        text-align: center;
+        line-height: 96%;
+        position: relative;
+        width: auto;
+        width: max-content;
+        max-width: 200px;
+        height: fit-content;
+        max-height: 70px;
+        transform: translateY(-65px) translateY(-100%) translateX(16px) translateX(-50%);
+        z-index: 999;
+    }
+
+    .name {
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+        bottom: 0;
+        transform: translateX(16px) translateX(-50%);
+        width: 96px;
+        max-width: 96px;
+        text-align: center;
+        color: palegreen;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        font-weight: bold;
+        font-size: smaller;
+        text-overflow: ellipsis;
+    }
+
+    .image {
+        width: 32px;
+        height: 48px;
+        background-image: url('assets/chars.png');
+        margin: 0;
+        padding: 0;
+        box-sizing: content-box;
+        background-repeat: no-repeat;
+        z-index: var(--posY);
+        position: relative;
+        background-position-x: calc(var(--avatarX) * -32px);
+        background-position-y: calc(var(--avatarY) * -48px);
+        animation-iteration-count: 1;
+        animation-duration: 0.3s;
+        animation-direction: normal;
+        animation-timing-function: steps(2, jump-none);
+    }
+
+    @@keyframes move1 {
+        from {
+            top: calc(var(--oldY) * 32px);
+            left: calc(var(--oldX) * 32px);
+        }
+
+        to {
+            top: calc(var(--posY) * 32px);
+            left: calc(var(--posX) * 32px);
+        }
+    }
+
+    @@keyframes move2 {
+        from {
+            top: calc(var(--oldY) * 32px);
+            left: calc(var(--oldX) * 32px);
+        }
+
+        to {
+            top: calc(var(--posY) * 32px);
+            left: calc(var(--posX) * 32px);
+        }
+    }
+
+    @@keyframes walk1{
+        0% {background-position-X: calc(var(--avatarX) * -32px);}
+        50% {background-position-X: calc((var(--avatarX) + 2) * -32px)}
+        100% {background-position-X: calc((var(--avatarX) + 1) * -32px)}
+    }
+
+    @@keyframes walk2 {
+        0% {background-position-X: calc(var(--avatarX) * -32px);}
+        50% {background-position-X: calc((var(--avatarX) + 2) * -32px)}
+        100% {background-position-X: calc((var(--avatarX) + 1) * -32px)}
+    }
+
+    .walking-True .image {
+        animation-name: walk1;
+    }
+
+    .walking-False .image {
+        animation-name: walk2;
+    }
+
+    .walking-True.avatar {
+        animation-name: move1;
+    }
+
+    .walking-False.avatar {
+        animation-name: move2;
+    }
+
+
+</style>

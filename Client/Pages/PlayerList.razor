@@ -1,0 +1,45 @@
+﻿@inject GameServer Server;
+
+<div class="panel m-1">
+	<h3>Players:</h3>
+	<div class="list">
+		@foreach (var player in Server.Players)
+		{
+			<div>@player.Name (@player.X,@player.Y) @player.Dir </div>
+		}
+	</div>
+</div>
+
+@code {
+
+	protected override void OnInitialized()
+	{
+		Server.PlayersChanged += (s, e) =>
+		{
+			e.Player.ContentUpdated += (s,e) => StateHasChanged();
+			StateHasChanged();	
+		};	
+	}
+
+}
+
+
+<style>
+	.panel{
+		color: white;
+		background: darkgreen;
+		overflow: hidden;
+	}
+
+	.panel div{
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 15vb;
+		min-width: 15vb;
+		font-size: small;
+	}
+
+	.list{
+	}
+</style>
