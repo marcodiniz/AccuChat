@@ -18,12 +18,8 @@
 </div>
 
 @code {
-    protected override async Task OnInitializedAsync()
-    {
-     
-    }
 
-    private async void OnKeyPress(KeyboardEventArgs args)
+    private async void OnKeyDown(KeyboardEventArgs args)
     {
         switch (args.Key)
         {
