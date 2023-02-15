@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccuChat.Client", "Client\A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccuChat.Shared", "Shared\AccuChat.Shared.csproj", "{9EED3B6E-9F75-4E8F-92DA-9D156A809BE4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccuChat.ClientClean", "ClientClean\AccuChat.ClientClean.csproj", "{B9C9DF13-BE4C-418A-8049-B3A79BAA8FDC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9EED3B6E-9F75-4E8F-92DA-9D156A809BE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9EED3B6E-9F75-4E8F-92DA-9D156A809BE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9EED3B6E-9F75-4E8F-92DA-9D156A809BE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9C9DF13-BE4C-418A-8049-B3A79BAA8FDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9C9DF13-BE4C-418A-8049-B3A79BAA8FDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9C9DF13-BE4C-418A-8049-B3A79BAA8FDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9C9DF13-BE4C-418A-8049-B3A79BAA8FDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

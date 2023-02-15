@@ -1,45 +1,26 @@
 ﻿@page "/"
 
-
 <div class="wrapper d-flex">
     <div class="room d-flex">
-        <div class="playerslist">
-            <PlayerList />
-        </div>
 
         <div class="main">
             <div class="map" tabindex="-1">
                 <img src="/assets/map.png" />
                 <div class="players">
-                    @foreach (var item in Server.Players)
-                    {
-                        <PlayerAvatar @key="item.Name" Player="@item" />
-                    }
+
                 </div>
             </div>
             <div class="me">
-                <input type="text" class="form-control" autofocus @bind-value=message @bind-value:event="oninput" @onkeyup="OnKeyPress" />
+                <input type="text" class="form-control" autofocus value=message/>
             </div>
         </div>
-
     </div>
 </div>
 
 @code {
-    [Inject]
-    private GameServer Server { get; set; }
-    string message = "";
-
     protected override async Task OnInitializedAsync()
     {
-        Server.PlayersChanged += (s, a) =>
-     {
-         StateHasChanged();
-     };
-
-        await Server.StartAsync();
-        await Server.Join("Test1");
-
+     
     }
 
     private async void OnKeyPress(KeyboardEventArgs args)
@@ -48,20 +29,14 @@
         {
 
             case "ArrowUp":
-                Server.Move(EDirection.Up);
                 break;
             case "ArrowDown":
-                Server.Move(EDirection.Down);
                 break;
             case "ArrowRight":
-                Server.Move(EDirection.Right);
                 break;
             case "ArrowLeft":
-                Server.Move(EDirection.Left);
                 break;
             case "Enter":
-                await Server.Speak(message);
-                message = "";
                 break;
             default:
                 break;
@@ -77,18 +52,6 @@
         position: absolute;
         height: 100%;
         width: 100%;
-    }
-
-    .playerslist {
-        background: red;
-        position: inherit;
-    }
-
-    .players {
-        position: absolute;
-        top: 0;
-        width: 100%;
-        height: 100%;
     }
 
     .room {
