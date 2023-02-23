@@ -1,17 +1,52 @@
 ﻿
 
-<div class="avatar walking-none" style="--posX: 10; --posY:5; --oldX:0; --oldY:0; --avatarX:0; --avatarY:0">
+<div class="avatar walking-@isWalking" style="--posX: @posX; --posY: @posY; --oldX:@oldX; --oldY:@oldY; --avatarX: @avatarX; --avatarY:@avatarY">
     <div class="image"></div>
-    <div class="name">PlayerName</div>
-    <div class="message">PlayerMessage</div>
+    <div class="name">@Player.Name</div>
+    <div class="message @(showMessge ? "" : "hidden")">@Player.Message</div>
 </div>
 @*<button @onclick="Test">AA</button>*@
 
 @code {
-    
+    [Parameter]
+    public Player Player { get; set; }
+
+    int posX, posY = 0;
+    int oldX, oldY = 0;
+
+    bool showMessge = false;
+    bool isWalking = false;
+
+    int avatarX => (Player.AvatarCode % 12) * 3;
+    int avatarY => (Player.AvatarCode / 12) * 4 + (int)Player.Dir;
+
     protected override async Task OnInitializedAsync()
     {
-    
+        posX = Player.X;
+        posY = Player.Y;
+
+        Player.ContentUpdated += (s, args) =>
+        {
+            if (args == EContentChange.Movement)
+            {
+                oldX = posX;
+                oldY = posY;
+                posX = Player.X;
+                posY = Player.Y;
+                isWalking = !isWalking;
+            }
+            if(args == EContentChange.Message)
+            {
+                showMessge = true;
+                Task.Delay(3000).ContinueWith(t =>
+                {
+                    showMessge = false;    
+                    StateHasChanged();
+                });
+            }
+
+            StateHasChanged();
+        };
     }
 
     private async void ShowMessage()

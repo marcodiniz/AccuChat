@@ -1,113 +1,186 @@
 ﻿@page "/"
+@using Blazored.LocalStorage;
+@inject NavigationManager NavigationManager;
+@inject Blazored.LocalStorage.ISyncLocalStorageService LocalStorage
 
-
-<div class="wrapper d-flex">
-    <div class="room d-flex">
-        <div class="playerslist">
-            <PlayerList />
+<div class="wrapper @faderClass">
+    <div class="avatar" style="--avatarX:@avatarX; --avatarY: @avatarY;">
+        <div class="chooser">
+            <div class="arrow" @onclick="() => ChangeCode(-1)">◀</div>
+            <div class="imageCharWalking"></div>
+            <div class="arrow" @onclick="() => ChangeCode(+1)">▶</div>
         </div>
-
-        <div class="main">
-            <div class="map" tabindex="-1">
-                <img src="/assets/map.png" />
-                <div class="players">
-                    @foreach (var item in Server.Players)
-                    {
-                        <PlayerAvatar @key="item.Name" Player="@item" />
-                    }
-                </div>
-            </div>
-            <div class="me">
-                <input type="text" class="form-control" autofocus @bind-value=message @bind-value:event="oninput" @onkeyup="OnKeyPress" />
-            </div>
-        </div>
-
     </div>
+    <input type="text" class="name" @bind-value="Name" @bind-value:event="oninput" @ref="input" autofocus />
+    <button type="button" class="join" onclick="@Join">
+        <div class="joia @(validName ? "" : "not")">👍</div>
+    </button>
 </div>
 
 @code {
-    [Inject]
-    private GameServer Server { get; set; }
-    string message = "";
+    [Inject] private GameServer Server { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    ElementReference input;
+
+    bool validName = false;
+    string faderClass = "";
+    string name = "Player Name";
+    public string Name
     {
-        Server.PlayersChanged += (s, a) =>
-     {
-         StateHasChanged();
-     };
+        get => name; set
+        {
+            name = value[0..Math.Min(value.Length, 17)].TrimStart();
+            validName = name.Trim().Length >= 5 && (name.StartsWith("Playe") == false);
 
-        await Server.StartAsync();
-        await Server.Join("Test1");
+        }
+    }
+
+    int avatarCode = Random.Shared.Next(0, 95);
+    int avatarX => (avatarCode % 12) * 3;
+    int avatarY => (avatarCode / 12) * 4 + (int)EDirection.Down;
+
+    protected override void OnInitialized()
+    {
+        var storedName = LocalStorage.GetItem<string>("name");
+        if (string.IsNullOrWhiteSpace(storedName) == false)
+        {
+            Name = storedName;
+        }
+
+        var storedAvatarCode= LocalStorage.GetItem<int?>("avatarCode");
+        if (storedAvatarCode != null)
+        {
+            avatarCode = storedAvatarCode.Value;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await input.FocusAsync();
+        if (firstRender) return;
 
     }
 
-    private async void OnKeyPress(KeyboardEventArgs args)
+    async void Join()
     {
-        switch (args.Key)
+        if (validName)
         {
+            faderClass = "fade";
+            if (Server.IsConnected == false)
+            {
+                await Server.StartAsync("http://localhost:4422/hub");
+            }
 
-            case "ArrowUp":
-                Server.Move(EDirection.Up);
-                break;
-            case "ArrowDown":
-                Server.Move(EDirection.Down);
-                break;
-            case "ArrowRight":
-                Server.Move(EDirection.Right);
-                break;
-            case "ArrowLeft":
-                Server.Move(EDirection.Left);
-                break;
-            case "Enter":
-                await Server.Speak(message);
-                message = "";
-                break;
-            default:
-                break;
+            await Server.Join(name, avatarCode);
 
+            LocalStorage.SetItem("name", name);
+            LocalStorage.SetItem("avatarCode", avatarCode);
+
+            NavigationManager.NavigateTo("Game");
         }
+    }
+
+    void ChangeCode(int change)
+    {
+        avatarCode += change;
+        if (avatarCode > 95) avatarCode = 0;
+        if (avatarCode < 0) avatarCode = 95;
+
     }
 }
 
 <style>
-
     .wrapper {
-        background: black;
+        background-color: black;
         position: absolute;
         height: 100%;
         width: 100%;
+        align-content: center;
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
     }
 
-    .playerslist {
-        background: red;
-        position: inherit;
+    .avatar {
+        @*background: cyan;*@ align-content: center;
+        justify-content: center;
+        align-self: center;
     }
 
-    .players {
-        position: absolute;
-        top: 0;
-        width: 100%;
-        height: 100%;
-    }
 
-    .room {
-        background: green;
+    .imageCharWalking {
         margin: auto;
+        transform: scale(1.5);
+        animation-iteration-count: infinite;
+        animation-duration: 0.3s;
+        animation-timing-function: steps(2, jump-none);
     }
 
-    .map {
-        background: gray;
-        margin: auto;
-        position: relative;
+    .chooser {
+        display: inline-flex;
     }
 
-        .map img {
-            width: 896px;
-            height: 608px;
+    .arrow {
+        color: dimgray;
+        font-family: math;
+        font-size: 48px;
+        margin: -5px 10px 0 10px;
+        height: 48px;
+        user-select: none;
+    }
+
+        .arrow:hover {
+            color: darkgray;
+            cursor: pointer;
         }
 
-    .map {
+        .arrow:active {
+            color: white;
+        }
+
+    .name {
+        color: white;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        font-weight: bold;
+        font-size: x-large;
+        text-align: center;
+        background: gray;
+        background: none;
+        border: none;
+        margin-top: 10px;
     }
 
+        .name:focus-visible {
+            outline: unset;
+        }
+
+    .join {
+        margin: 5px auto 0 auto;
+        font-size: 50px;
+        background: none;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+
+    .joia {
+        transition: text-shadow 0.2s ease-in-out, transform 0.5s ease-in-out;
+        width: 77px;
+        min-height: 77px;
+        max-height: 77px;
+    }
+
+        .joia.not {
+            transform: rotate(180deg);
+        }
+
+            .joia:hover {
+            text-shadow: 0 0 30px white, -2px -2px 2px white, -2px 2px 2px white, 2px -2px 2px white, 2px 2px 2px white;
+            }
+
+            .joia.not:hover {
+                text-shadow: 0 0 30px red, -2px -2px 2px red, -2px 2px 2px red, 2px -2px 2px red, 2px 2px 2px red;
+            }
 </style>

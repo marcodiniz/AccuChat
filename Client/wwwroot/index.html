@@ -5,16 +5,17 @@
     <meta charset="utf-8" />
     <title>AccuChat</title>
     <base href="/" />
-    <!--<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">-->
     <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <link href="css/app.css" rel="stylesheet" />
-
-    <!-- If you add any scoped CSS files, uncomment the following to load them
-    <link href="AccuChat.Client.styles.css" rel="stylesheet" /> -->
+    <link href="css/app.css?v=5" rel="stylesheet" />
+    <link href="AccuChat.Client.styles.css" rel="stylesheet" />
 </head>
 
 <body>
-    <div id="app">Loading...</div>
+    <div id="app">
+        <div class="loader loader-border is-active">
+            <div class="loadtext">LOADING...</div>
+        </div>
+    </div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -25,3 +26,139 @@
 </body>
 
 </html>
+
+<style>
+    .fader {
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s 2s, opacity 2s linear;
+    }
+
+    .loadtext {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: xx-large;
+        font-family: monospace;
+        color: #b2ffe4;
+    }
+
+    .loader:has(.loadtext) {
+        color: #fff;
+        position: fixed;
+        box-sizing: border-box;
+        left: -9999px;
+        top: -9999px;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        z-index: 999999
+    }
+
+    .loader:after, .loader:before {
+        box-sizing: border-box;
+        display: none
+    }
+
+    .loader.is-active {
+        background-color: rgba(0,0,0,.85);
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0
+    }
+
+        .loader.is-active:after, .loader.is-active:before {
+            display: block
+        }
+
+    @keyframes rotation {
+        0% {
+            transform: rotate(0)
+        }
+
+        to {
+            transform: rotate(359deg)
+        }
+    }
+
+    @keyframes blink {
+        0% {
+            opacity: .5
+        }
+
+        to {
+            opacity: 1
+        }
+    }
+
+    .loader[data-text]:before {
+        position: fixed;
+        left: 0;
+        top: 50%;
+        color: currentColor;
+        font-family: Helvetica,Arial,sans-serif;
+        text-align: center;
+        width: 100%;
+        font-size: 14px
+    }
+
+    .loader[data-text][data-blink]:before {
+        animation: blink 1s linear infinite alternate
+    }
+
+    @keyframes corners {
+        6% {
+            width: 60px;
+            height: 15px
+        }
+
+        25% {
+            width: 15px;
+            height: 15px;
+            left: calc(100% - 15px);
+            top: 0
+        }
+
+        31% {
+            height: 60px
+        }
+
+        50% {
+            height: 15px;
+            top: calc(100% - 15px);
+            left: calc(100% - 15px)
+        }
+
+        56% {
+            width: 60px
+        }
+
+        75% {
+            width: 15px;
+            left: 0;
+            top: calc(100% - 15px)
+        }
+
+        81% {
+            height: 60px
+        }
+    }
+
+    .loader-border[data-text]:before {
+        color: #fff
+    }
+
+    .loader-border:after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 15px;
+        height: 15px;
+        background-color: #b2ffe4;
+        animation: corners 3s ease both infinite
+    }
+</style>

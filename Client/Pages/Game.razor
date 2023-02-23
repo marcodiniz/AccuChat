@@ -1,61 +1,58 @@
-﻿@page "/"
+﻿@page "/Game"
+@inject NavigationManager NavigationManager;
 
 <div class="wrapper d-flex">
     <div class="room d-flex">
-
+        @*<div class="playerslist">
+            <PlayerList />
+        </div>
+*@
         <div class="main">
             <div class="map" tabindex="-1">
                 <img src="/assets/map.png" />
                 <div class="players">
                     @foreach (var item in Server.Players)
                     {
-                        <PlayerAvatar Player="item"/>
+                        <PlayerAvatar @key="item.Name" Player="@item" />
                     }
                 </div>
             </div>
             <div class="me">
-                <input type="text" class="form-control" autofocus @onkeydown="OnKeyDown" @bind-value=message 
-                                                                    @bind-value:event="oninput" />
+                <input type="text" class="form-control" autofocus @bind-value=message @bind-value:event="oninput" @onkeydown="OnKeyPress" />
             </div>
         </div>
+
     </div>
 </div>
 
 @code {
-    [Inject]
-    public GameServer Server { get; set; }
-
+    [Inject] private GameServer Server { get; set; }
     string message = "";
 
     protected override async Task OnInitializedAsync()
     {
-        Server.PlayersChanged += (s, args) =>
-        {
-            StateHasChanged();
-        };
-
-        await Server.StartAsync();
-        await Server.Join("Marco");
+        Server.PlayersChanged += (s, a) =>
+     {
+         StateHasChanged();
+     };
     }
-    private async void OnKeyDown(KeyboardEventArgs args)
+
+    private async void OnKeyPress(KeyboardEventArgs args)
     {
         switch (args.Key)
         {
 
             case "ArrowUp":
-                await Server.Move(EDirection.Up);
+                Server.Move(EDirection.Up);
                 break;
             case "ArrowDown":
-                await Server.Move(EDirection.Down);
-
+                Server.Move(EDirection.Down);
                 break;
             case "ArrowRight":
-                await Server.Move(EDirection.Right);
-
+                Server.Move(EDirection.Right);
                 break;
             case "ArrowLeft":
-                await Server.Move(EDirection.Left);
-
+                Server.Move(EDirection.Left);
                 break;
             case "Enter":
                 await Server.Speak(message);
@@ -75,6 +72,18 @@
         position: absolute;
         height: 100%;
         width: 100%;
+    }
+
+    .playerslist {
+        background: red;
+        position: inherit;
+    }
+
+    .players {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height: 100%;
     }
 
     .room {

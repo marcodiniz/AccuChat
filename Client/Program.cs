@@ -1,5 +1,6 @@
 using AccuChat.Client;
 using AccuChat.Shared;
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -14,5 +15,6 @@ builder.Services.AddLogging(b =>
 });
 
 builder.Services.AddSingleton<GameServer>();
+builder.Services.AddBlazoredLocalStorage();
 
 await builder.Build().RunAsync();

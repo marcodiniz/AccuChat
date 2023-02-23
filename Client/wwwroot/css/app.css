@@ -31,6 +31,36 @@ h1:focus {
         content: "An error has occurred."
     }
 
+/*custom*/
 .hidden{
     visibility: hidden;
+}
+
+@keyframes walk {
+    0% {
+        background-position-X: calc((var(--avatarX) + 0) * -32px)
+    }
+
+    100% {
+        background-position-X: calc((var(--avatarX) + 2) * -32px)
+    }
+}
+
+.imageCharWalking {
+    width: 32px;
+    height: 48px;
+    margin: 0;
+    padding: 0;
+    box-sizing: content-box;
+
+    background-image: url('../assets/chars.png');
+    background-repeat: no-repeat;
+    background-position-x: calc((var(--avatarX) + 1)* -32px);
+    background-position-y: calc(var(--avatarY) * -48px);
+
+    animation-name: walk;
+    animation-iteration-count: 1;
+    animation-duration: 0.3s;
+    animation-direction: normal;
+    animation-timing-function: steps(2, jump-none);
 }

@@ -9,6 +9,10 @@ public class GameServer
     private Player _me;
     private readonly ILogger<GameServer> _log;
     private Dictionary<string, Player> _players = new();
+    public string _name;
+    private int _avatarCode;
+    public bool IsConnected { get; private set; }
+
     public ICollection<Player> Players => _players.Values;
     public event EventHandler<PlayersChangedEventArgs> PlayersChanged;
 
@@ -16,32 +20,55 @@ public class GameServer
     {
         _log = log;
         _log.LogDebug("HubClient constructed");
-        _conn = new HubConnectionBuilder()
-            .WithAutomaticReconnect()
-            .WithUrl("https://accuchat.loca.lt/hub", o => o.Headers.Add("Bypass-Tunnel-Reminder", "anything"))
-            //.WithUrl("https://qrpg2mb5-7243.uks1.devtunnels.ms/hub")
-            .Build();
     }
 
-    public async Task StartAsync()
+    public async Task StartAsync(string serverUrl)
     {
-        _conn.Closed += async e => _log.LogWarning("Connection closed");
-        _conn.Reconnecting += async e => _log.LogInformation("Connection closed");
-        _conn.Reconnected += async e => _log.LogInformation("Reconnected");
+        _conn = new HubConnectionBuilder()
+            .WithAutomaticReconnect()
+            .WithUrl(serverUrl, o =>
+                {
+                    o.Headers.Add("Bypass-Tunnel-Reminder", "anything");
+                }).Build();
+        _conn.Closed += async e =>
+        {
+            IsConnected = false;
+            _log.LogWarning("Connection closed");
+        };
+        _conn.Reconnecting += async e =>
+        {
+            IsConnected = false;
+            _log.LogInformation("Connection closed");
+        };
+        _conn.Reconnected += async e =>
+        {
+            IsConnected = true;
+            _log.LogInformation("Reconnected");
+        };
 
         _conn.On(nameof(IHubClient.OnPong), OnPong);
+        _conn.On(nameof(IHubClient.OnAskToRejoin), OnAskToRejoin);
         _conn.On<PlayerActionEventArgs>(nameof(IHubClient.OnPlayerAction), OnPlayerUpdated);
         _conn.On<PlayersChangedEventArgs>(nameof(IHubClient.OnPlayersChanged), OnPlayersChanged);
-        //_conn.On<PlayerCard>(nameof(OnPlayerEnteredRoom), OnPlayerEnteredRoom);
 
         await _conn.StartAsync();
-
+        IsConnected = true;
     }
 
     public Task<string> Ping() => _conn.InvokeAsync<string>(nameof(IHubHost.Ping));
-    public async Task Join(string name)
+    private Task OnAskToRejoin()
     {
-        _me = await _conn.InvokeAsync<Player>(nameof(IHubHost.Join), name);
+        _log.LogWarning("Asked to Rejoin");
+        return Join(_name, _avatarCode);
+    }
+
+    public async Task Join(string name, int avatarCode)
+    {
+        _name = name;
+        _avatarCode = avatarCode;
+        var players = await _conn.InvokeAsync<ICollection<Player>>(nameof(IHubHost.Join), name, avatarCode);
+        _players.Clear();
+        players.ToList().ForEach(x => _players.Add(x.Name, x));
     }
 
     public async Task Move(EDirection direction)

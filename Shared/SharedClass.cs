@@ -33,6 +33,7 @@ public class Player
 public interface IHubClient
 {
     Task OnPong();
+    Task OnAskToRejoin();
     Task OnPlayerAction(PlayerActionEventArgs args);
     Task OnPlayersChanged(PlayersChangedEventArgs args);
 }
@@ -40,7 +41,7 @@ public interface IHubClient
 public interface IHubHost
 {
     string Ping();
-    Task<Player> Join(string name);
+    Task<ICollection<Player>> Join(string name, int avatarCode);
     Task Move(EDirection direction);
     Task Speak(string message);
 }

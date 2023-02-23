@@ -12,5 +12,6 @@ builder.Services.AddLogging(b =>
     b.AddFilter("", LogLevel.Information);  
 });
 
+builder.Services.AddSingleton<GameServer>();
 
 await builder.Build().RunAsync();

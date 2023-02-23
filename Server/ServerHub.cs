@@ -18,7 +18,7 @@ public class GameStore
 		_log = log;
 		var file = @$"{env.ContentRootPath}\ldktmap\simplified\Level_0\data.json";
 		_log.LogWarning(file);
-        var str = File.ReadAllText(file);
+		var str = File.ReadAllText(file);
 		var json = JsonConvert.DeserializeObject<JObject>(str);
 		Blockers = json.SelectToken("entities.Entity")
 		.Select(e => (x: e["x"].Value<int>()/32, y: e["y"].Value<int>()/32))
@@ -46,41 +46,51 @@ public class ServerHub : Hub<IHubClient>, IHubHost
 	}
 
 	public override Task OnDisconnectedAsync(Exception exception)
-	{
-		_store.CardsByConnection.Remove(Context.ConnectionId, out var card);
-		Clients.All.OnPlayersChanged(new(card.Player, EConnectionChange.Disconnected));
-		return base.OnDisconnectedAsync(exception);
-	}
+    {
+        _RemovePlayer();
+        return base.OnDisconnectedAsync(exception);
+    }
 
-	public string Ping() => "Pong";
+    private void _RemovePlayer()
+    {
+        if(_store.CardsByConnection.Remove(Context.ConnectionId, out var card))
+			Clients.All.OnPlayersChanged(new(card?.Player, EConnectionChange.Disconnected));
+    }
 
-	public async Task<Player> Join(string name)
+    public string Ping() => "Pong";
+
+	public async Task<ICollection<Player>> Join(string name, int avatarCode)
 	{
-		var count = 1;
+        _RemovePlayer();
+
+        var count = 1;
 		var finalName = name;
 		while (_store.Cards.Any(x => x.Player.Name.Equals(finalName, StringComparison.InvariantCultureIgnoreCase)))
 		{
 			finalName = $"{name}_{count++}";
 		}
-		
+
 		var player = new Player(finalName)
 		{
-			AvatarCode = Randomize(96),
+			AvatarCode = Math.Clamp(avatarCode, 0, 95),
 		};
+
 		player.UpdatePosition(EDirection.Down, 8, 6);
 
 		if(_store.CardsByConnection.TryAdd(Context.ConnectionId,  new PlayerCard(player)) == false)
-			return null;
+			return default!;
 
 		_log.LogInformation($"{finalName} joined {Context.ConnectionId}");
 		
 		await Clients.All.OnPlayersChanged(new (player, EConnectionChange.Connected));
 		
-		return player;
+		return _store.Cards.Select(x => x.Player).ToList();
 	}
 
 	public async Task Move(EDirection direction)
 	{
+		if (!CheckPlayer()) return;
+
 		var x = Player.X;
 		var y = Player.Y;
 		var step = 1;
@@ -126,6 +136,8 @@ public class ServerHub : Hub<IHubClient>, IHubHost
 
 	public async Task Speak(string message)
 	{
+		if (!CheckPlayer()) return;
+
 		if (string.IsNullOrWhiteSpace(message))
 		{
 			return;
@@ -205,6 +217,17 @@ public class ServerHub : Hub<IHubClient>, IHubHost
 
 
 			card.FunState = EFunState.None;
+	}
+
+	private bool CheckPlayer()
+	{
+		if (_store.CardsByConnection.ContainsKey(Context.ConnectionId) == false)
+		{
+			Clients.Caller.OnAskToRejoin();
+			return false;
+		}
+
+		return true;
 	}
 
 	int Randomize(int max) => Randomize(0, max);
