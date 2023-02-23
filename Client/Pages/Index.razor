@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Blazored.LocalStorage;
+@using System.Diagnostics;
 @inject NavigationManager NavigationManager;
 @inject Blazored.LocalStorage.ISyncLocalStorageService LocalStorage
 
@@ -68,7 +69,12 @@
             faderClass = "fade";
             if (Server.IsConnected == false)
             {
-                await Server.StartAsync("http://localhost:4422/hub");
+                var url = NavigationManager.ToAbsoluteUri("/hub").AbsoluteUri;
+                if (Debugger.IsAttached)
+                {
+                    url = "http://localhost:4444/hub";
+                }
+                await Server.StartAsync(url);
             }
 
             await Server.Join(name, avatarCode);
