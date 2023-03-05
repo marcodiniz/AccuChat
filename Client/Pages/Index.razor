@@ -70,10 +70,10 @@
             if (Server.IsConnected == false)
             {
                 var url = NavigationManager.ToAbsoluteUri("/hub").AbsoluteUri;
-                if (Debugger.IsAttached)
-                {
+                #if DEBUG
                     url = "http://localhost:4444/hub";
-                }
+                #endif
+                    
                 await Server.StartAsync(url);
             }
 

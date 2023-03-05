@@ -17,12 +17,13 @@ public class GameStore
 	{
 		_log = log;
 		var file = @$"{env.ContentRootPath}\ldktmap\simplified\Level_0\data.json";
-		_log.LogWarning(file);
 		var str = File.ReadAllText(file);
 		var json = JsonConvert.DeserializeObject<JObject>(str);
 		Blockers = json.SelectToken("entities.Entity")
-		.Select(e => (x: e["x"].Value<int>()/32, y: e["y"].Value<int>()/32))
-		.ToList();
+			.Select(e => (x: e["x"].Value<int>() / 32, y: e["y"].Value<int>() / 32))
+			.ToList();
+
+		_log.LogInformation("Store constructed");
 	}
 }
 
@@ -80,7 +81,7 @@ public class ServerHub : Hub<IHubClient>, IHubHost
 		if(_store.CardsByConnection.TryAdd(Context.ConnectionId,  new PlayerCard(player)) == false)
 			return default!;
 
-		_log.LogInformation($"{finalName} joined {Context.ConnectionId}");
+		_log.LogInformation("{finalName} joined {connectionId}, total of {players} players", finalName, Context.ConnectionId, _store.Cards.Count());
 		
 		await Clients.All.OnPlayersChanged(new (player, EConnectionChange.Connected));
 		
