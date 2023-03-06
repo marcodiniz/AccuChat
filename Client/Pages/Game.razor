@@ -18,7 +18,7 @@
                 </div>
             </div>
             <div class="me">
-                <input type="text" class="form-control" autofocus @bind-value=message @bind-value:event="oninput" @onkeydown="OnKeyPress" />
+                <input type="text" class="form-control" autofocus @bind-value=message @bind-value:event="oninput" @onkeyup="OnKeyPress" />
             </div>
         </div>
 
@@ -31,10 +31,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (Server.IsConnected == false)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+
         Server.PlayersChanged += (s, a) =>
-     {
-         StateHasChanged();
-     };
+        {
+            StateHasChanged();
+        };
     }
 
     private async void OnKeyPress(KeyboardEventArgs args)
